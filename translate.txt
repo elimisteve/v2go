@@ -1,0 +1,19 @@
+'$str' -> `$str`
+`$char` -> '$char'
+[$*elts] -> []$TYPEOF($*elts[0]){$*elts}
+mut  -> 
+[$val ; $size] -> make([]$TYPEOF($val), $size)
+$var.len -> len($var)
+$str.substr($a, $b) -> $str[$a:$b]
+fn -> func
+pub $var -> $CAPITALIZE($var)
+exit($code) -> os.Exit($code)
+println($var) -> fmt.Printf("%v\n", $var)
+$array << $val -> $array = append($array, $val)
+$val.str() -> fmt.Sprintf("%v", $val)
+for $val in $container -> for _, $val := $container
+$val in $container -> (func() bool) { for _, _elt := range $container { if _elt == $val { return true } } return false }())
+struct $typ { -> type $typ struct {
+interface $typ { -> type $typ interface {
+$*vars1, err := $*vars2\nif err != nil {\s*$*vars3\s*} -> $*vars1 := $*vars2 or {\n\t$*vars3\n}
+$*vars1 := $*vars2? -> $*vars1, err := $*vars2\nif err != nil {\npanic(err)\n}
