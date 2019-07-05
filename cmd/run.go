@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"os/exec"
 
 	"github.com/elimisteve/v2go/translate"
 	"github.com/spf13/cobra"
@@ -18,14 +17,9 @@ var runCmd = &cobra.Command{
 	Example: "$ v2go run test_v_files/hello_world.v",
 	Short:   "Translate given .v file(s) to Go then run resulting Go binary",
 	Run: func(cmd *cobra.Command, args []string) {
-		goFiles, err := translate.TranslateVFiles(args)
+		out, err := translate.TranslateAndRunFiles(args)
 		if err != nil {
-			log.Fatalf("Error translating files: %v\n", err)
-		}
-		runArgs := append([]string{"run"}, goFiles...)
-		out, err := exec.Command("go", runArgs...).Output()
-		if err != nil {
-			log.Fatalf("Error running translated Go files: %v\n", err)
+			log.Fatalf("Error translating and running files: %v\n", err)
 		}
 		fmt.Printf("%s", out)
 	},
