@@ -1,3 +1,4 @@
+module -> package
 '(.*?\s*)($myvar)(\s*.*?)('?) -> `\1` + fmt.Sprintf("%v", myvar) + `\3`\4
 '$$*str' -> `$$*str`
 `$$char` -> '$$char'
