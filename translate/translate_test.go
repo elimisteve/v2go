@@ -4,6 +4,7 @@
 package translate
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -23,5 +24,19 @@ func TestTranslateAndRunFiles(t *testing.T) {
 			t.Fatalf("Error running TranslateAndRunFiles(%q): %v", vFilename, err)
 		}
 		assert.Equal(t, correct, string(out))
+	}
+}
+
+func TestTranslateAndRunFiles2(t *testing.T) {
+	correctLen := 31
+	passing := []string{
+		"../test_v_files/links_scraper2.v",
+	}
+	for _, vFilename := range passing {
+		out, err := TranslateAndRunFiles([]string{vFilename})
+		if err != nil {
+			t.Fatalf("Error running TranslateAndRunFiles(%q): %v", vFilename, err)
+		}
+		assert.Equal(t, correctLen, len(strings.Split(string(out), "\n")))
 	}
 }
