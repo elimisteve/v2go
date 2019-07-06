@@ -18,18 +18,25 @@ Try it out:
     cat ./test_v_files/hello_world.v
     v2go run ./test_v_files/hello_world.v
 
+Or, for a more interesting example:
+
+    cd $(go env GOPATH)/src/github.com/elimisteve/v2go
+    cat ./test_v_files/links_scraper2.v
+    v2go run ./test_v_files/links_scraper2.v
+
 `v2go run ./path/to/mycode.v` translates the given `.v` file(s) into
 Go, then tells Go to build and run them -- all with one command! :tada:
 
 To just translate your `.v` files _without_ also running the
 translated Go files afterward:
 
-    v2go translate ./test_v_files/hello_world.v ./test_v_files/hello_world_interpolated.v
+    v2go translate ./test_v_files/*.v
 
 Now you can run them as one normally would:
 
     go run ./test_v_files/hello_world.go
     go run ./test_v_files/hello_world_interpolated.go
+    go run ./test_v_files/links_scraper2.go
 
 
 For a bit more info, run
