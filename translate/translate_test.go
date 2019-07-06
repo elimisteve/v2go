@@ -15,6 +15,7 @@ func TestTranslateAndRunFiles(t *testing.T) {
 		"../test_v_files/hello_world.v",
 		"../test_v_files/hello_world_interpolated.v",
 		"../test_v_files/hello_world_interpolated2.v",
+		"../test_v_files/hello_world_module.v",
 	}
 	for _, vFilename := range passingHelloWorld {
 		out, err := TranslateAndRunFiles([]string{vFilename})

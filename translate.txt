@@ -19,4 +19,3 @@ struct $$typ { -> type $$typ struct {
 interface $$typ { -> type $$typ interface {
 $$*vars1, err := $$*vars2\nif err != nil {\s*$$*vars3\s*} -> $$*vars1 := $$*vars2 or {\n\t$$*vars3\n}
 $$*vars1 := $$*vars2? -> $$*vars1, err := $$*vars2\nif err != nil {\n\tpanic(err)\n}
-(mut  -> (

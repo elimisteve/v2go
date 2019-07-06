@@ -27,9 +27,11 @@ func IsValidVFile(fname string) bool {
 var reStringInterpolation = regexp.MustCompile(`[^\\]\$\w+|[^\\]\$\{\w+\}`)
 
 func TranslateVSource(in []byte) (out []byte, err error) {
+	add := func(s string) { out = append(out, []byte(s)...) }
+
 	lines := strings.Split(string(in), "\n")
 	inComment := false
-	first := true
+	start := true
 	for _, l := range lines {
 		l = strings.TrimSpace(l)
 		if strings.HasPrefix(l, "//") {
@@ -43,20 +45,27 @@ func TranslateVSource(in []byte) (out []byte, err error) {
 			inComment = false
 			continue
 		}
-		if first && !inComment {
-			if !strings.HasPrefix(l, "module") {
-				out = append(out, []byte(`package main
-
-`)...)
+		if start && !inComment {
+			if strings.HasPrefix(l, "module") {
+				l = strings.Replace(l, "module", "package", 1)
+				add(l + "\n")
+				continue
+			} else {
+				add(`func main() {
+`)
+				defer func() {
+					add("}")
+				}()
 			}
+			start = false
 		}
 
-		if first && !inComment && !strings.HasPrefix(l, "fn") {
-			out = append(out, []byte(`func main() {
-`)...)
-			defer func() {
-				out = append(out, '}')
-			}()
+		if start {
+			continue
+		}
+
+		if !start && !inComment && strings.HasPrefix(l, "import") {
+			// Imports
 		}
 
 		if ndx := strings.Index(l, "println("); ndx != -1 {
@@ -93,10 +102,9 @@ func TranslateVSource(in []byte) (out []byte, err error) {
 			}
 		}
 
-		out = append(out, lb...)
-		out = append(out, '\n')
-		if first {
-			first = false
+		add(string(lb) + "\n")
+		if start {
+			start = false
 		}
 	}
 	out = append(out, '\n')
