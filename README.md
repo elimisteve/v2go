@@ -82,6 +82,22 @@ auto-generated rather than _manually_ written (how old-fashioned that
 would be!)
 
 
+### Hacking on v2go
+
+Get started in the same way as stated above:
+
+    go get github.com/elimisteve/v2go
+    go get golang.org/x/tools/cmd/goimports
+    cd $(go env GOPATH)/src/github.com/elimisteve/v2go
+
+Make sure all tests pass:
+
+    go test ./translate
+
+Hack on. :fist: Consider starting by [creating an issue](https://github.com/elimisteve/v2go/issues)
+with a proposed new feature, or by submitting a pull request.
+
+
 ### More About V
 
 See <https://vlang.io/>, especially <https://vlang.io/docs>.  For a
