@@ -37,6 +37,7 @@ Now you can run them as one normally would:
     go run ./test_v_files/hello_world.go
     go run ./test_v_files/hello_world_interpolated.go
     go run ./test_v_files/links_scraper2.go
+    go run ./test_v_files/guess.go
 
 
 For a bit more info, run
