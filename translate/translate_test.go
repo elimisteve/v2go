@@ -42,3 +42,19 @@ func TestTranslateAndRunFiles2(t *testing.T) {
 		assert.LessOrEqual(t, gotLen, correctLen+5)
 	}
 }
+
+func TestTranslateAndRunFiles3(t *testing.T) {
+	correct := `Guess the randomly-chosen number between 0 and 9: The correct answer is  -- great work!
+It only took you 0 tries.
+`
+	passing := []string{
+		"../test_v_files/guess.v",
+	}
+	for _, vFilename := range passing {
+		out, err := TranslateAndRunFiles([]string{vFilename})
+		if err != nil {
+			t.Fatalf("Error running TranslateAndRunFiles(%q): %v", vFilename, err)
+		}
+		assert.Equal(t, correct, string(out))
+	}
+}
