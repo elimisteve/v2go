@@ -30,10 +30,20 @@ var (
 	reQuestion            = regexp.MustCompile(`(\w+) := (.*?)\?$`)
 )
 
-func quotesAndStringInterp(l string) string {
-	// TODO: Actually do string interpolation
+func quotesAndStringInterp(l, vvar string) string {
+	if !strings.Contains(l, "$") {
+		return l
+	}
+	varName := vvar[len(" $"):]
+	if varName[0] == '{' {
+		varName = varName[len("{") : len(varName)-len("}")]
+	}
+	// "some $name interp" -> "some " + fmt.Sprintf("%v", name) + " interp"
+	repl := vvar[:1] + `" + fmt.Sprintf("%v", ` + varName + `) + "`
+	l = strings.Replace(l, vvar, repl, -1)
 	l = strings.Replace(l, "('", `("`, -1)
 	l = strings.Replace(l, "')", `")`, -1)
+	l = strings.Replace(l, `("" + `, `(`, -1)
 	return l
 }
 
@@ -81,7 +91,7 @@ func TranslateVSource(in []byte) (out []byte, err error) {
 					specifiedPkg = true
 				}
 				importIndex = len(out) - 1
-				add("func main() {")
+				add("func main() {\n")
 				inMain = true
 				shouldMaybeDeferClosingBrace = true
 			}
@@ -115,6 +125,16 @@ func TranslateVSource(in []byte) (out []byte, err error) {
 		// Generic logic
 		//
 
+		allVvars := reStringInterpolation.FindAllStringSubmatch(l, -1)
+		for _, vvars := range allVvars {
+			if len(vvars) == 0 {
+				continue
+			}
+			vvar := vvars[0]
+			l = quotesAndStringInterp(l, vvar)
+			justDidStringInterp = true
+		}
+
 		allForIns := reForIn.FindAllStringSubmatch(l, -1)
 		if len(allForIns) > 0 {
 			for _, forIn := range allForIns {
@@ -127,7 +147,7 @@ func TranslateVSource(in []byte) (out []byte, err error) {
 		if len(allQs) > 0 {
 			for _, q := range allQs {
 				add(fmt.Sprintf("\t%s, err := %s\n\tif err != nil {\n\t\tpanic(err)\n\t}\n", q[1],
-					quotesAndStringInterp(q[2])))
+					quotesAndStringInterp(q[2], q[2])))
 			}
 			continue
 		}
@@ -135,26 +155,10 @@ func TranslateVSource(in []byte) (out []byte, err error) {
 		if ndx := strings.Index(l, "println("); ndx != -1 {
 			l = strings.Replace(l, "println('", `fmt.Printf("`, -1)
 			l = strings.Replace(l, "')", `\n")`, -1)
-			l = strings.Replace(l, "println(", `fmt.Println(`, -1)
-			allVvars := reStringInterpolation.FindAllStringSubmatch(l, -1)
-			for _, vvars := range allVvars {
-				if len(vvars) == 0 {
-					continue
-				}
-				vvar := vvars[0]
-				varName := vvar[len(" $"):]
-				if varName[0] == '{' {
-					varName = varName[len("{") : len(varName)-len("}")]
-				}
-				// "some $name interp" -> "some " + fmt.Sprintf("%v", name) + " interp"
-				l = strings.Replace(
-					l,
-					vvar,
-					vvars[0][:1]+`" + fmt.Sprintf("%v", `+varName+`) + "`,
-					-1)
-				justDidStringInterp = true
-			}
+			l = strings.Replace(l, "println(", "fmt.Println(", -1)
 		}
+
+		l = strings.Replace(l, "print(", "fmt.Print(", -1)
 
 		// TODO: Properly handle multi-line strings
 

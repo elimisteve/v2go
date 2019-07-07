@@ -1,7 +1,9 @@
 fn main() {
 	reLinks := regexp.MustCompile('<a href="(http.*?)" class="storylink"')
 
-	resp := http.Get('https://news.ycombinator.com')?
+	url := 'https://news.ycombinator.com'
+	resp := http.Get('$url')?
+
 	defer resp.Body.Close()
 
 	html := ioutil.ReadAll(resp.Body)?
