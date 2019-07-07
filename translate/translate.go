@@ -44,6 +44,7 @@ func quotesAndStringInterp(l, vvar string) string {
 	l = strings.Replace(l, "('", `("`, -1)
 	l = strings.Replace(l, "')", `")`, -1)
 	l = strings.Replace(l, `("" + `, `(`, -1)
+	l = strings.Replace(l, ` + ""`, ``, -1)
 	return l
 }
 
@@ -135,6 +136,10 @@ func TranslateVSource(in []byte) (out []byte, err error) {
 			justDidStringInterp = true
 		}
 
+		if !inComment && strings.Contains(l, "mut ") {
+			l = strings.Replace(l, "mut ", "", -1)
+		}
+
 		allForIns := reForIn.FindAllStringSubmatch(l, -1)
 		if len(allForIns) > 0 {
 			for _, forIn := range allForIns {
@@ -152,13 +157,16 @@ func TranslateVSource(in []byte) (out []byte, err error) {
 			continue
 		}
 
+		l = strings.Replace(l, "print(", "fmt.Print(", -1)
+		l = strings.Replace(l, "eprintln(", `fmt.Fprintf(os.Stderr, `, -1)
+		l = strings.Replace(l, "exit(", "os.Exit(", -1)
+
 		if ndx := strings.Index(l, "println("); ndx != -1 {
 			l = strings.Replace(l, "println('", `fmt.Printf("`, -1)
 			l = strings.Replace(l, "')", `\n")`, -1)
 			l = strings.Replace(l, "println(", "fmt.Println(", -1)
 		}
 
-		l = strings.Replace(l, "print(", "fmt.Print(", -1)
 
 		// TODO: Properly handle multi-line strings
 
