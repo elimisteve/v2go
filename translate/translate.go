@@ -25,8 +25,10 @@ func IsValidVFile(fname string) bool {
 }
 
 var (
-	reStringInterpolation = regexp.MustCompile(`[^\\]\$\w+|[^\\]\$\{.+?\}`)
+	reJsonDecode          = regexp.MustCompile(`(\w+) := json.decode\((.*?), (\w+)\) or {`)
+	reStringInterpolation = regexp.MustCompile(`[^\\]\$[\w\.]+|[^\\]\$\{.+?\}`)
 	reForIn               = regexp.MustCompile(`for (\w+) in (.*?) {`)
+	reForInWithKey        = regexp.MustCompile(`for (\w+), (\w+) in (.*?) {`)
 	reQuestion            = regexp.MustCompile(`(\w+) := (.*?)\?$`)
 )
 
@@ -110,6 +112,9 @@ func TranslateVSource(in []byte) (out []byte, err error) {
 				if toImport == "http" {
 					toImport = "net/http"
 				}
+				if toImport == "json" {
+					toImport = "encoding/json"
+				}
 				// Add double-quotes around imports
 				l = fmt.Sprintf(`import "%s"`, toImport)
 			}
@@ -122,9 +127,29 @@ func TranslateVSource(in []byte) (out []byte, err error) {
 			continue
 		}
 
+		if strings.HasPrefix(l, "struct") {
+			typ := l[len("struct ") : len(l)-2]
+			add(fmt.Sprintf("type %s struct {\n", typ))
+			continue
+		}
+
+		if strings.HasPrefix(l, "fn ") {
+			l = strings.Replace(l, "fn ", "func ", 1)
+		}
+
 		//
 		// Generic logic
 		//
+
+		jsonDecode := reJsonDecode.FindAllStringSubmatch(l, -1)
+		if len(jsonDecode) > 0 {
+			newVar := jsonDecode[0][1]
+			typ := strings.Replace(jsonDecode[0][2], " ", "", -1)
+			data := jsonDecode[0][3]
+			add(fmt.Sprintf("%s := *new(%s)\n", newVar, typ))
+			add(fmt.Sprintf("if err := json.Unmarshal([]byte(%s), &%s); err != nil {\n", data, newVar))
+			continue
+		}
 
 		allVvars := reStringInterpolation.FindAllStringSubmatch(l, -1)
 		for _, vvars := range allVvars {
@@ -144,6 +169,14 @@ func TranslateVSource(in []byte) (out []byte, err error) {
 		if len(allForIns) > 0 {
 			for _, forIn := range allForIns {
 				add(fmt.Sprintf("\tfor _, %s := range %s {\n", forIn[1], forIn[2]))
+			}
+			continue
+		}
+
+		allForInsWithKey := reForInWithKey.FindAllStringSubmatch(l, -1)
+		if len(allForInsWithKey) > 0 {
+			for _, forIn := range allForInsWithKey {
+				add(fmt.Sprintf("\tfor %s, %s := range %s {\n", forIn[1], forIn[2], forIn[3]))
 			}
 			continue
 		}
