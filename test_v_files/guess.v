@@ -11,7 +11,7 @@ fn main() {
 		guesses++
 		if user_guess == correct {
 			break
-        }
+		}
 		println('Nope! Try again...')
 	}
 
